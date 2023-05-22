@@ -1,32 +1,30 @@
 import pandas as pd
 import numpy as np
+
 # Load the data from the CSV file
 data = pd.read_csv('C:/Users/hunai/Desktop/cars_clus.csv')
 
-# Drop irrelevant columns
+# DATA_CLEANING
+
+# 1- Drop irrelevant columns
 columns_to_drop = ['type', 'lnsales', 'partition']
 data.drop(columns_to_drop, axis=1, inplace=True)
 
-# Load the data from the CSV file
-data = pd.read_csv('C:/Users/hunai/Desktop/cars_clus.csv')
+# 2- Define the values to convert to NaN
+values_to_convert = ['null', '$null$', 'NA', 'NaN', 'missing']
 
-# Define the values to convert to NaN
-values_to_convert = ['null','$null$', 'NA', 'NaN', 'missing']
-
-# Convert specified values to NaN
+# 3- Convert specified values to NaN
 data.replace(values_to_convert, np.nan, inplace=True)
 
-
-# Print the updated data
-# print(data.head())
-
-
 for column in data.columns:
-    if data[column].dtype != object:  # Check if column is numeric
+    # Check if column is numeric fill it with mean
+
+    if data[column].dtype != object:
         data[column].fillna(data[column].mean(), inplace=True)
-    else:  # For non-numeric columns, fill missing values with the mode
+    # For non-numeric columns, fill missing values with the mode
+    else:
         data[column].fillna(data[column].mode()[0], inplace=True)
 
-# Print the preprocessed data
+# Print the preprocessed cleaned data
 print("Preprocessed Data:")
 print(data)
