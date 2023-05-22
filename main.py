@@ -11,7 +11,7 @@ data.drop(columns_to_drop, axis=1, inplace=True)
 data = pd.read_csv('C:/Users/hunai/Desktop/cars_clus.csv')
 
 # Define the values to convert to NaN
-values_to_convert = ['null', 'NA', 'NaN', 'missing']
+values_to_convert = ['null','$null$', 'NA', 'NaN', 'missing']
 
 # Convert specified values to NaN
 data.replace(values_to_convert, np.nan, inplace=True)
