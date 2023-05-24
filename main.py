@@ -24,24 +24,6 @@ for column in data.columns:
     else:
         data[column].fillna(data[column].mode()[0], inplace=True)
 
-# FINDING CORRELATION
-features = ['sales','resale','type','price','engine_s','horsepow','wheelbas','width','length','curb_wgt','fuel_cap','mpg','lnsales','partition']
-corr_matrix = data[features].corr().abs()
-
-# plt.figure(figsize=(16, 6))
-# heatmap = sns.heatmap(corr_matrix, vmin=-1, vmax=1, annot=True)
-# heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':12}, pad=12);
-# plt.show()
-
-# Select upper triangle of correlation matrix
-upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-
-
-to_drop = [column for column in upper.columns if any(upper[column] > 0.5)]
-
-# Drop features
-data.drop(to_drop, axis=1, inplace=True)
-
 # SCALING OF DATA TO NORMALIZE
 features_to_convert_inFloat = ['sales', 'resale', 'price', 'engine_s', 'wheelbas','width','length','curb_wgt','fuel_cap','lnsales']
 data[features_to_convert_inFloat] = data[features_to_convert_inFloat].astype(float)
@@ -56,7 +38,23 @@ data_scaled = scaler.fit_transform(features_to_scale)
 
 # Create a new DataFrame with the scaled data
 data_scaled = pd.DataFrame(data_scaled, columns=features_to_scale.columns)
-print(data_scaled.head())
+
+# FINDING CORRELATION
+corr_matrix = data_scaled.corr()
+
+plt.figure(figsize=(16, 6))
+heatmap = sns.heatmap(corr_matrix, cmap="YlGnBu", annot=True)
+heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':12}, pad=12);
+plt.show()
+
+# Select upper triangle of correlation matrix
+upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+
+to_drop = [column for column in upper.columns if any(upper[column] > 0.5)]
+
+# Drop features
+data_scaled.drop(to_drop, axis=1, inplace=True)
+data_scaled.head()
 
 # Determine the optimal number of clusters (example using the elbow method)
 inertias = []
@@ -83,6 +81,7 @@ kmeans.fit(data_scaled)
 data_scaled['clusters'] = kmeans.labels_
 data_scaled['clusters'] = data_scaled['clusters'].astype(int)
 cluster_means = data_scaled.groupby('clusters').mean()
+print(cluster_means)
 print(data_scaled)
 
 
