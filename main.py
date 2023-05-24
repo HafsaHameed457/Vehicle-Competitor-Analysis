@@ -4,7 +4,6 @@ import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Load the data from the CSV file
 data = pd.read_csv('./cars_clus.csv')
@@ -14,7 +13,7 @@ values_to_convert = ['null', '$null$', 'NA', 'NaN', 'missing']
 
 # 3- Convert specified values to NaN
 data.replace(values_to_convert, np.nan, inplace=True)
-#
+
 for column in data.columns:
     # Check if column is numeric fill it with mean
 
@@ -26,13 +25,12 @@ for column in data.columns:
         data[column].fillna(data[column].mode()[0], inplace=True)
 
 # FINDING CORRELATION
-features = ['sales','resale','type','price','engine_s','horsepow','wheelbas','width','length','curb_wgt','fuel_cap','mpg',	'lnsales','partition'
-            ]
+features = ['sales','resale','type','price','engine_s','horsepow','wheelbas','width','length','curb_wgt','fuel_cap','mpg','lnsales','partition']
 corr_matrix = data[features].corr().abs()
 
-plt.figure(figsize=(16, 6))
-heatmap = sns.heatmap(corr_matrix, vmin=-1, vmax=1, annot=True)
-heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':12}, pad=12);
+# plt.figure(figsize=(16, 6))
+# heatmap = sns.heatmap(corr_matrix, vmin=-1, vmax=1, annot=True)
+# heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':12}, pad=12);
 # plt.show()
 
 # Select upper triangle of correlation matrix
@@ -44,42 +42,36 @@ to_drop = [column for column in upper.columns if any(upper[column] > 0.5)]
 # Drop features
 data.drop(to_drop, axis=1, inplace=True)
 
-# Print the preprocessed cleaned data
-print("Preprocessed Data:")
-print(data)
-# data.to_csv('dataaa.csv', index=False)
-
 # SCALING OF DATA TO NORMALIZE
-# Select the features you want to scale
-features_to_scale = ['sales', 'resale', 'type', 'wheelbas', 'partition']
-data[features_to_scale] = data[features_to_scale].astype(float)
-data_to_scale = data[features_to_scale]
+features_to_convert_inFloat = ['sales', 'resale', 'price', 'engine_s', 'wheelbas','width','length','curb_wgt','fuel_cap','lnsales']
+data[features_to_convert_inFloat] = data[features_to_convert_inFloat].astype(float)
+features_to_convert_inInt = ['type', 'horsepow', 'mpg', 'partition']
+data[features_to_convert_inInt] = data[features_to_convert_inInt].astype(float).astype(int)
 
 # Standardization
+features_to_scale=data.copy()
+features_to_scale.drop(["model","manufact"],axis=1,inplace=True)
 scaler = StandardScaler()
-data_scaled = scaler.fit_transform(data_to_scale)
+data_scaled = scaler.fit_transform(features_to_scale)
 
 # Create a new DataFrame with the scaled data
-# data_scaled = pd.DataFrame(data_scaled, columns=features_to_scale)
-
-# Print the scaled DataFrame
+data_scaled = pd.DataFrame(data_scaled, columns=features_to_scale.columns)
+print(data_scaled.head())
 
 # Determine the optimal number of clusters (example using the elbow method)
 inertias = []
-silhouette_scores = []
 max_clusters = 10
 for k in range(1, 11):
     kmeans = KMeans(n_clusters=k,n_init=10, random_state=42)
     kmeans.fit(data_scaled)
     inertias.append(kmeans.inertia_)
-    # silhouette_scores.append(silhouette_score(scaled_data, kmeans.labels_))
 # Plot the elbow curve
 
 plt.plot(range(1, 11), inertias, marker='o')
 plt.xlabel('Number of Clusters')
 plt.ylabel('Within-Cluster Sum of Squares (Inertia)')
 plt.title('Elbow Method')
-# plt.show()
+plt.show()
 
 # Choose the optimal number of clusters and fit the K-means model
 k = 4
@@ -88,24 +80,21 @@ kmeans.fit(data_scaled)
 
 
 # Assign the cluster labels to the original data
-data['cluster'] = kmeans.labels_
-# data['clusters'] = data['clusters'].astype(int)
-# data['clusters'] = data['clusters'].str.strip()
-# data['cluster'] = pd.to_numeric(int(data['cluster']))
-# dataaaa=data['cluster']
-#
-# data.to_csv('dateee.csv',index=False)
-#
-cluster_means = data.groupby('cluster').mean()
-print(cluster_means)
+data_scaled['clusters'] = kmeans.labels_
+data_scaled['clusters'] = data_scaled['clusters'].astype(int)
+cluster_means = data_scaled.groupby('clusters').mean()
+print(data_scaled)
 
 
 
 # Visualization
-sns.scatterplot(data=data, x='horsepow', y='price', hue='cluster')
-plt.xlabel('Horsepower')
-plt.ylabel('Price')
+sns.scatterplot(x=data['manufact'], y=data_scaled['clusters'], hue=data_scaled['clusters'])
+plt.xlabel('Manufact')
+plt.ylabel('Clusters')
 plt.title('Clustering Analysis')
+plt.xticks(fontsize=5)
+plt.yticks(fontsize=5)
+plt.figure(figsize=(12, 8))
 plt.show()
 
 
